@@ -1,0 +1,30 @@
+# Workflow name
+name: ci-frontend
+
+# Triggers for the workflow
+on:
+  # Manual trigger using the workflow_dispatch event
+  workflow_dispatch:
+
+  # Automatic trigger on push events to the main branch
+  push:
+    branches:
+      - main
+
+# Jobs defined in the workflow
+jobs:
+  lint-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv install # Adjust based on your project setup
+
+      - name: Run the pipenv run lintcommand
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv run lint  # LINT JOB
