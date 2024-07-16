@@ -27,10 +27,10 @@ jobs:
       - name: Perform a cache action to restore cache before dependency install
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip  # Adjust this path based on your dependency manager
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          path: ~/.npm  # Adjust this path based on your package manager
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         run: |
@@ -56,10 +56,10 @@ jobs:
       - name: Perform a cache action to restore cache before dependency install
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip  # Adjust this path based on your dependency manager
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          path: ~/.npm  # Adjust this path based on your package manager
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         run: |
@@ -86,10 +86,10 @@ jobs:
       - name: Perform a cache action to restore cache before dependency install
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip  # Adjust this path based on your dependency manager
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          path: ~/.npm  # Adjust this path based on your package manager
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         run: |
