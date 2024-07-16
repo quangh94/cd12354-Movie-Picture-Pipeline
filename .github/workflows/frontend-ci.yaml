@@ -13,7 +13,7 @@ on:
 
 # Jobs defined in the workflow
 jobs:
-  test-job:
+  lint-job:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,13 +24,29 @@ jobs:
         with:
           node-version: latest
 
-      - name: Print a message for main branch
-        if: github.ref == 'refs/heads/main'
-        run: echo "This is the main branch."
+      - name: Perform a cache action to restore cache before dependency install
+        uses: actions/cache@v3
 
-      - name: Print a message for non-main branches
-        if: github.ref != 'refs/heads/main'
-        run: echo "This is not the main branch."
+      - name: Install dependencies
+        run: |
+          cd starter/frontend  # Change to the specific directory
+          npm i  # Adjust based on your project setup
+
+      - name: Run the npm run lint command
+        run: |
+          cd starter/frontend  # Change to the specific directory
+          npm run lint  # LINT JOB
+
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
 
       - name: Perform a cache action to restore cache before dependency install
         uses: actions/cache@v3
@@ -48,8 +64,4 @@ jobs:
       - name: Run the npm run lint command
         run: |
           cd starter/frontend  # Change to the specific directory
-          npm run lint  # LINT JOB
-
-      - name: Debug message
-        if: env.DEBUG == 'true'
-        run: echo "Debugging is enabled."
+          npm run test  # LINT JOB
