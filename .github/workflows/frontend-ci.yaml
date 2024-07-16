@@ -1,0 +1,53 @@
+# Workflow name
+name: ci-frontend
+
+# Triggers for the workflow
+on:
+  # Manual trigger using the workflow_dispatch event
+  workflow_dispatch:
+
+  # Automatic trigger on push events to the main branch
+  push:
+    branches:
+      - main
+
+# Jobs defined in the workflow
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+
+      - name: Print a message for main branch
+        if: github.ref == 'refs/heads/main'
+        run: echo "This is the main branch."
+
+      - name: Print a message for non-main branches
+        if: github.ref != 'refs/heads/main'
+        run: echo "This is not the main branch."
+
+      - name: Perform a cache action to restore cache before dependency install
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip  # Adjust this path based on your dependency manager
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt  # Adjust based on your project setup
+
+      - name: Run the npm run lint command
+        run: |
+          npm run lint  # LINT JOB
+
+      - name: Debug message
+        if: env.DEBUG == 'true'
+        run: echo "Debugging is enabled."
