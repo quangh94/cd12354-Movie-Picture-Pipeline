@@ -29,7 +29,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-west-1  # Specify your AWS region
+          aws-region: us-east-1  # Specify your AWS region
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -44,8 +44,8 @@ jobs:
 
       - name: Tag Docker image
         run: |
-          docker tag mp-backend:latest 236230997345.dkr.ecr.us-west-1.amazonaws.com/mp-backend:latest
+          docker tag mp-backend:latest 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-backend:latest
 
       - name: Push Docker image to ECR
         run: |
-          docker push 236230997345.dkr.ecr.us-west-1.amazonaws.com/mp-backend:latest 
+          docker push 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-backend:latest 
