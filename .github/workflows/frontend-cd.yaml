@@ -1,0 +1,35 @@
+# Workflow name
+name: cd-frontend
+
+# Triggers for the workflow
+on:
+  # Manual trigger using the workflow_dispatch event
+  workflow_dispatch:
+  workflow_call:  # Allow this workflow to be called from another workflow
+
+  # Automatic trigger on push events to the main branch
+  push:
+    branches:
+      - main
+
+# Jobs defined in the workflow
+jobs:
+  build-ci:
+    uses: ./.github/workflows/frontend-ci.yaml  # Reference the reusable job YAML
+  post-build-actions:
+    needs: [build-ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Docker image
+        run: |
+          cd starter/backend  # Change to the specific directory
+          docker build -t mp-backend:latest .  # Replace with your image name
