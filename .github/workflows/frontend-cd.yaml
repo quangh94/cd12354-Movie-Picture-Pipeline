@@ -14,10 +14,10 @@ on:
 
 # Jobs defined in the workflow
 jobs:
-  #build-ci:
-    #uses: ./.github/workflows/frontend-ci.yaml  # Reference the reusable job YAML
+  build-ci:
+    uses: ./.github/workflows/frontend-ci.yaml  # Reference the reusable job YAML
   post-build-actions:
-    #needs: [build-ci]
+    needs: [build-ci]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -39,13 +39,13 @@ jobs:
 
       - name: Build Docker image
         run: |
-          cd starter/backend  # Change to the specific directory
-          docker build -t mp-backend:latest .  # image name
+          cd starter/frontend  # Change to the specific directory
+          docker build -t mp-frontend:latest .  # image name
 
       - name: Tag Docker image
         run: |
-          docker tag mp-backend:latest 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-backend:latest
+          docker tag mp-frontend:latest 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-frontend:latest
 
       - name: Push Docker image to ECR
         run: |
-          docker push 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-backend:latest 
+          docker push 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-frontend:latest 
