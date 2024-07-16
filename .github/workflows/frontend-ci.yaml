@@ -42,7 +42,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt  # Adjust based on your project setup
+          npm i  # Adjust based on your project setup
 
       - name: Run the npm run lint command
         run: |
