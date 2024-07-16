@@ -19,10 +19,6 @@ jobs:
   post-build-actions:
     #needs: [build-ci]
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -44,4 +40,12 @@ jobs:
       - name: Build Docker image
         run: |
           cd starter/backend  # Change to the specific directory
-          docker build -t mp-backend:latest .  # Replace with your image name
+          docker build -t mp-backend:latest .  # image name
+
+      - name: Tag Docker image
+        run: |
+          docker tag mp-backend:latest 236230997345.dkr.ecr.us-west-1.amazonaws.com/mp-backend:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push 236230997345.dkr.ecr.us-west-1.amazonaws.com/mp-backend:latest 
