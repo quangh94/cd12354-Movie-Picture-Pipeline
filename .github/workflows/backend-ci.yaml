@@ -39,7 +39,37 @@ jobs:
           cd starter/backend  # Change to the specific directory
           pipenv install flake8  # Install flake8 using pipenv
 
-      - name: Run the pipenv run lintcommand
+      - name: Run the pipenv run lint command
         run: |
           cd starter/backend  # Change to the specific directory
           pipenv run lint  # LINT JOB
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4  # Use the latest version
+        with:
+          python-version: '3.x'  # Specify the desired Python version
+
+      - name: Install pipenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv  # Install pipenv
+
+      - name: Install dependencies
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv install # Adjust based on your project setup
+
+      - name: Install flake8
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv install flake8  # Install flake8 using pipenv
+
+      - name: Run the pipenv run test command
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv run test  # Test JOB
