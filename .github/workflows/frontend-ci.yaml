@@ -23,6 +23,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: latest
+          
+      - name: Set environment variable for insecure Node version
+          run: echo "ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true" >> $GITHUB_ENV
 
       - name: Perform a cache action to restore cache before dependency install
         uses: actions/cache@v3
