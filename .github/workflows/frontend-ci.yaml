@@ -47,6 +47,7 @@ jobs:
 
       - name: Run the npm run lint command
         run: |
+          cd starter/frontend  # Change to the specific directory
           npm run lint  # LINT JOB
 
       - name: Debug message
