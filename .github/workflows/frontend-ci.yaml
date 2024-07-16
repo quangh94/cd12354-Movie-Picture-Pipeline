@@ -42,7 +42,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd starter/frontend & npm i  # Adjust based on your project setup
+          cd starter/frontend  # Change to the specific directory
+          npm i  # Adjust based on your project setup
 
       - name: Run the npm run lint command
         run: |
