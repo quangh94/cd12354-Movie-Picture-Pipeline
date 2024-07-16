@@ -26,6 +26,11 @@ jobs:
 
       - name: Perform a cache action to restore cache before dependency install
         uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip  # Adjust this path based on your dependency manager
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -61,7 +66,37 @@ jobs:
           cd starter/frontend  # Change to the specific directory
           npm i  # Adjust based on your project setup
 
-      - name: Run the npm run lint command
+      - name: Run the npm run test command
+        run: |
+          cd starter/frontend  # Change to the specific directory
+          npm run test  # LINT JOB
+
+  build-job:
+    needs: [lint-job, test-job]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+
+      - name: Perform a cache action to restore cache before dependency install
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip  # Adjust this path based on your dependency manager
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          cd starter/frontend  # Change to the specific directory
+          npm i  # Adjust based on your project setup
+
+      - name: Run the npm run test command
         run: |
           cd starter/frontend  # Change to the specific directory
           npm run test  # LINT JOB
