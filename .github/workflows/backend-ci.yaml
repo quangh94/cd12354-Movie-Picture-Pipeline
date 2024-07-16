@@ -5,11 +5,12 @@ name: ci-backend
 on:
   # Manual trigger using the workflow_dispatch event
   workflow_dispatch:
+  workflow_call:  # Allow this workflow to be called from another workflow
 
   # Automatic trigger on push events to the main branch
-  push:
-    branches:
-      - main
+  #push:
+   # branches:
+    #  - main
 
 # Jobs defined in the workflow
 jobs:
