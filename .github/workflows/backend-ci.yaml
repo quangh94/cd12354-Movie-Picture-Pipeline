@@ -1,5 +1,5 @@
 # Workflow name
-name: ci-frontend
+name: ci-backend
 
 # Triggers for the workflow
 on:
