@@ -42,7 +42,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm i  # Adjust based on your project setup
+          cd starter/frontend & npm i  # Adjust based on your project setup
 
       - name: Run the npm run lint command
         run: |
