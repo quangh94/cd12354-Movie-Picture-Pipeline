@@ -95,11 +95,6 @@ jobs:
           cd starter/backend  # Change to the specific directory
           pipenv install # Adjust based on your project setup
 
-      - name: Install flake8
-        run: |
-          cd starter/backend  # Change to the specific directory
-          pipenv install flake8  # Install flake8 using pipenv
-
       - name: Run the pipenv run serve command
         run: |
           cd starter/backend  # Change to the specific directory
