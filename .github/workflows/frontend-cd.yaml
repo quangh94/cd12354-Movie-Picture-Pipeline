@@ -5,7 +5,6 @@ name: cd-frontend
 on:
   # Manual trigger using the workflow_dispatch event
   workflow_dispatch:
-  workflow_call:  # Allow this workflow to be called from another workflow
 
   # Automatic trigger on push events to the main branch
   push:
@@ -14,14 +13,64 @@ on:
 
 # Jobs defined in the workflow
 jobs:
-  build-ci:
-    uses: ./.github/workflows/frontend-ci.yaml  # Reference the reusable job YAML
-  post-build-actions:
-    needs: [build-ci]
+  lint-job:
+    name: LINT
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Perform a cache action to restore cache before dependency install
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm  # Adjust this path based on your package manager
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies and run linit
+        working-directory: ./starter/frontend
+        run: |
+          npm ci  # Adjust based on your project setup
+          npm run lint  # LINT JOB Run the npm run lint command
+
+  test-job:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Perform a cache action to restore cache before dependency install
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm  # Adjust this path based on your package manager
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies and Run the npm run test command
+        working-directory: ./starter/frontend
+        run: |
+          npm i  # Adjust based on your project setup
+          npm run test  # Test JOB
+  build-job:
+    name: build
+    needs: [lint-job, test-job]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
@@ -35,17 +84,54 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Amazon ECR
+        id: login-amz-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build Docker image
+      - name: Build, tag, push image
+        env:
+          ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
+          ECR_REPOSITORY: "mp-backend"
+          IMAGE_TAG: latest
         run: |
           cd starter/frontend  # Change to the specific directory
-          docker build -t mp-frontend:latest .  # image name
+          docker build -t mp-backend:latest .  # image name
+          docker tag mp-backend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_OUTPUT
+  deploy-job:
+    name: deploy
+    needs: [build-job]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Tag Docker image
-        run: |
-          docker tag mp-frontend:latest 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-frontend:latest
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1  # Specify your AWS region
 
-      - name: Push Docker image to ECR
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Amazon ECR
+        id: login-amz-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        
+      - name: Update k8s config
+        run: aws eks update-kubeconfig --name=cluster
+
+      - name: Deploy using kustomize
+        working-directory: ./starter/frontend/k8s
+        env:
+          ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
+          ECR_REPOSITORY: "mp-frontend"
+          IMAGE_TAG: latest
         run: |
-          docker push 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-frontend:latest 
+          kustomize edit set image frontend=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          kustomize build
+          kubectl apply -f service.yaml
+          kubectl apply -f deployment.yaml
