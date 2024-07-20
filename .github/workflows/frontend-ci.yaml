@@ -73,6 +73,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Node.js 
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Perform a cache action to restore cache before dependency install
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm  # Adjust this path based on your package manager
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies and Run the npm run test command
+        working-directory: ./starter/frontend
+        run: |
+          npm i  # Adjust based on your project setup
+          npm run test  # Test JOB
+
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -93,9 +112,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
           ECR_REPOSITORY: "mp-frontend"
           IMAGE_TAG: latest
+          REACT_APP_MOVIE_API_URL: "http://localhost:5000 npm start"
         run: |
           cd starter/frontend  # Change to the specific directory
-          docker build -t mp-frontend:latest .  # image name
+          docker build --build-arg=REACT_APP_MOVIE_API_URL -t mp-frontend:latest .  # image name
           docker tag mp-frontend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_OUTPUT
