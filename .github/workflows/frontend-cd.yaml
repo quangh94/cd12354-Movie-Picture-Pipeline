@@ -90,12 +90,12 @@ jobs:
       - name: Build, tag, push image
         env:
           ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
-          ECR_REPOSITORY: "mp-backend"
+          ECR_REPOSITORY: "mp-frontend"
           IMAGE_TAG: latest
         run: |
           cd starter/frontend  # Change to the specific directory
-          docker build -t mp-backend:latest .  # image name
-          docker tag mp-backend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker build --build-arg=REACT_APP_MOVIE_API_URL -t mp-frontend:latest .  # image name
+          docker tag mp-frontend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_OUTPUT
   deploy-job:
@@ -135,3 +135,4 @@ jobs:
           kustomize build
           kubectl apply -f service.yaml
           kubectl apply -f deployment.yaml
+          kubectl get svc -A
