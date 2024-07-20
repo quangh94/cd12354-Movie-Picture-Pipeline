@@ -95,7 +95,7 @@ jobs:
           IMAGE_TAG: latest
         run: |
           cd starter/frontend  # Change to the specific directory
-          docker build -t mp-backend:latest .  # image name
-          docker tag mp-backend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker build -t mp-frontend:latest .  # image name
+          docker tag mp-frontend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_OUTPUT
