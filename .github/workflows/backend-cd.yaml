@@ -146,3 +146,4 @@ jobs:
           kustomize build
           kubectl apply -f service.yaml
           kubectl apply -f deployment.yaml
+          kubectl get svc -A
