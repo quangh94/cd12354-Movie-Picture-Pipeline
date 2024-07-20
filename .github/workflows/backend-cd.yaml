@@ -131,12 +131,12 @@ jobs:
         run: aws eks update-kubeconfig --name=cluster
 
       - name: Deploy using kustomize
+        working-directory: ./starter/backend/k8s
         env:
           ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
           ECR_REPOSITORY: "mp-backend"
           IMAGE_TAG: latest
         run: |
-          cd starter/backend  # Change to the specific directory
           kustomize edit set image backend=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           kustomize build
           kubectl apply -f service.yaml
