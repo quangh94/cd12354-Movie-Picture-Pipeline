@@ -91,6 +91,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
           ECR_REPOSITORY: "mp-frontend"
+          REACT_APP_MOVIE_API_URL: "http://localhost:5000"
           IMAGE_TAG: latest
         run: |
           cd starter/frontend  # Change to the specific directory
