@@ -112,7 +112,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
           ECR_REPOSITORY: "mp-frontend"
           IMAGE_TAG: latest
-          REACT_APP_MOVIE_API_URL: "http://localhost:5000 npm start"
+          REACT_APP_MOVIE_API_URL: ${{ vars.REACT_APP_MOVIE_API_URL}}
         run: |
           cd starter/frontend  # Change to the specific directory
           docker build --build-arg=REACT_APP_MOVIE_API_URL -t mp-frontend:latest .  # image name
