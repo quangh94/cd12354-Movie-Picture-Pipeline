@@ -95,7 +95,7 @@ jobs:
           IMAGE_TAG: latest
         run: |
           cd starter/frontend  # Change to the specific directory
-          docker build --build-arg=REACT_APP_MOVIE_API_URL -t mp-frontend:latest .  # image name
+          docker build --build-arg=REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL -t mp-frontend:latest .  # image name
           docker tag mp-frontend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_OUTPUT
