@@ -5,7 +5,6 @@ name: cd-backend
 on:
   # Manual trigger using the workflow_dispatch event
   workflow_dispatch:
-  workflow_call:  # Allow this workflow to be called from another workflow
 
   # Automatic trigger on push events to the main branch
   push:
@@ -14,14 +13,74 @@ on:
 
 # Jobs defined in the workflow
 jobs:
-  build-ci:
-    uses: ./.github/workflows/backend-ci.yaml  # Reference the reusable job YAML
-  post-build-actions:
-    needs: [build-ci]
+  lint-job:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4  # Use the latest version
+        with:
+          python-version: '3.x'  # Specify the desired Python version
+
+      - name: Install pipenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv  # Install pipenv
+
+      - name: Install dependencies
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv install # Adjust based on your project setup
+
+      - name: Install flake8
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv install flake8  # Install flake8 using pipenv
+
+      - name: Run the pipenv run lint command
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv run lint  # LINT JOB
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4  # Use the latest version
+        with:
+          python-version: '3.x'  # Specify the desired Python version
+
+      - name: Install pipenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv  # Install pipenv
+
+      - name: Install dependencies
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv install # Adjust based on your project setup
+
+      - name: Install flake8
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv install flake8  # Install flake8 using pipenv
+
+      - name: Run the pipenv run test command
+        run: |
+          cd starter/backend  # Change to the specific directory
+          pipenv run test  # Test JOB
+
+  build-job:
+    name: build
+    needs: [lint-job, test-job]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
@@ -35,17 +94,50 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Amazon ECR
+        id: login-amz-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build Docker image
+      - name: Build, tag, push image
+        env:
+          ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
+          ECR_REPOSITORY: "mp-backend"
+          IMAGE_TAG: latest
         run: |
-          cd starter/frontend  # Change to the specific directory
+          cd starter/backend  # Change to the specific directory
           docker build -t mp-backend:latest .  # image name
+          docker tag mp-backend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_OUTPUT
 
-      - name: Tag Docker image
-        run: |
-          docker tag mp-backend:latest 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-backend:latest
+  deploy-job:
+    name: deploy
+    needs: [build-job]
+    runs-on: ubuntu-latest
+    steps:
 
-      - name: Push Docker image to ECR
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1  # Specify your AWS region
+
+      - name: Log in to Amazon ECR
+        id: login-amz-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Update k8s config
+        run: aws eks update-kubeconfig --name=cluster
+
+      - name: Deploy using kustomize
+        working-directory: ./starter/backend/k8s
+        env:
+          ECR_REGISTRY: ${{ steps.login-amz-ecr.outputs.registry }}
+          ECR_REPOSITORY: "mp-backend"
+          IMAGE_TAG: latest
         run: |
-          docker push 236230997345.dkr.ecr.us-east-1.amazonaws.com/mp-backend:latest 
+          kustomize edit set image backend=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          kustomize build
+          kubectl apply -f service.yaml
+          kubectl apply -f deployment.yaml
